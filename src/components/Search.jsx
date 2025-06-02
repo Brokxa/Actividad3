@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
-const Search = ({ restaurants }) => {
+const Search = () => {
+  const [restaurants, setRestaurants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'restaurantes'));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setRestaurants(data);
+      } catch (error) {
+        console.error('Error al cargar restaurantes:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const filtrados = restaurants.filter(r =>
-    r.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  r.nombre && r.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -17,17 +34,11 @@ const Search = ({ restaurants }) => {
         value={searchTerm}
         onChange={e => setSearchTerm(e.target.value)}
       />
-
       <div className="row">
         {filtrados.map((rest, index) => (
           <div key={index} className="col-md-6 mb-4">
             <div className="card">
-              <img
-                  src={rest.imagen}
-                  className="card-img-top img-fluid"
-                  style={{ height: '200px', objectFit: 'cover' }}
-                  alt={rest.nombre}
-                />
+              <img src={rest.imagen} className="card-img-top img-fluid" style={{ height: "200px", objectFit: "cover" }} alt={rest.nombre} />
               <div className="card-body">
                 <h5 className="card-title">{rest.nombre}</h5>
                 <p className="card-text">{rest.descripcion}</p>

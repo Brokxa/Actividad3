@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import Swal from 'sweetalert2';
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebase";
+import Swal from "sweetalert2";
 
-const NewRestaurant = ({ setRestaurants }) => {
+const NewRestaurant = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -13,11 +15,16 @@ const NewRestaurant = ({ setRestaurants }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    setRestaurants(prev => [...prev, formData]);
-    Swal.fire('Guardado', 'Restaurante agregado exitosamente', 'success');
-    setFormData({ nombre: '', descripcion: '', direccion: '', imagen: '' });
+    try {
+      await addDoc(collection(db, "restaurantes"), formData);
+      Swal.fire("Guardado", "Restaurante agregado exitosamente", "success");
+      setFormData({ nombre: '', descripcion: '', direccion: '', imagen: '' });
+    } catch (error) {
+      console.error("Error al agregar el restaurante:", error);
+      Swal.fire("Error", "No se pudo guardar el restaurante", "error");
+    }
   };
 
   return (
